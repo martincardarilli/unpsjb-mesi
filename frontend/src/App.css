@@ -1,0 +1,195 @@
+.cache{
+  display:flex;
+  flex-direction:column;
+  margin-top: 20px;
+  border: 1px solid gray;
+  
+  padding: 20px;
+  
+  align-items: center;
+  min-width: 220px;
+  background-color:white;
+  
+}
+
+
+.cachetitle{
+  margin-bottom: 10px;
+}
+
+.cacheGroup{
+  display:flex;
+  flex-direction:row;
+  gap:20px;
+}
+
+.nucleo{
+  padding: 20px;
+  background-color:gray;
+  border-radius:7px;
+  
+}
+
+.procesador{
+  padding: 20px;
+  background-color:rgb(37, 37, 37);
+  margin-left: 20px;
+  border-radius:7px;
+  width: fit-content;
+}
+
+.procesador h2{
+  color:rgb(236, 236, 236);
+}
+
+.busInterno{
+  background-color:white;
+  padding-left: 20px;
+}
+
+.busExterno{
+  background-color:rgb(37, 37, 37);
+  margin-left: 20px;
+  padding-left: 20px;
+  color:white;
+}
+
+.cacheSlot{
+  display: flex;
+    gap: 3px;
+  
+  margin-bottom:3px;
+  
+}
+
+.cacheSlot span{
+  width: 50px;
+ 
+  padding:3px;
+  background-color:rgb(218, 218, 218);
+}
+
+
+
+.header{
+  width: 50px;
+  padding:3px;
+  background-color:rgb(151, 151, 151);
+}
+
+.headerSlot{
+  display: flex;
+  gap: 3px;
+
+margin-bottom:3px;
+}
+
+
+.dos{
+  width: 100px !important;
+}
+
+.datoEnCache{
+  width: 25px !important;
+}
+
+.todo{
+  display:flex;
+  flex-direction:row;
+}
+
+.direccionRAM{
+  width: 100px !important;
+}
+
+.renglon{
+  background-color:white !important;
+  text-align:right;
+}
+
+.CPU{
+  background-color: black;
+    height: 200px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow:auto;
+
+    
+}
+
+
+/*
+.cacheSlot.highlighted span{
+  background-color: rgb(167, 167, 167) !important; 
+}
+*/
+
+
+/* ULTIMO RENGLON EN ACTUALIZARSE */
+
+.cacheSlot.highlighted.E span{
+  background-color: rgb(152, 218, 152) !important; /* Cambiar al color que desees para resaltar el renglón */
+}
+
+.cacheSlot.highlighted.M span{
+  background-color: rgb(136, 207, 255) !important;
+}
+
+.cacheSlot.highlighted.S span{
+  background-color: rgb(255, 228, 106) !important;
+}
+
+.cacheSlot.highlighted.I span{
+  background-color: rgb(240, 148, 148) !important;
+}
+
+/* ETIQUETA PERMANENTE */
+
+.E{
+  background-color:rgb(152, 218, 152) !important; /* Cambiar al color que desees para resaltar el renglón */
+}
+
+.M{
+  background-color: rgb(136, 207, 255) !important;
+}
+
+.S{
+  background-color: rgb(255, 228, 106) !important;
+}
+
+.I{
+  background-color: rgb(240, 148, 148) !important;
+}
+
+
+
+
+
+/*
+.cacheSlot.highlighted span.datoEnCache {
+  color: red !important; 
+*/
+
+
+
+
+
+
+
+
+
+h2{
+  margin-left:20px;
+}
+
+.leftCol{
+  margin-left:20px;
+  
+}
+
+.busMsg{
+  margin-left: 40px;
+  font-weight: 700;
+}
