@@ -5,7 +5,10 @@ const { workerData, parentPort } = require('worker_threads');
 // ---------------
 
 // Ejemplo de Variable desde hilo principal
-const CICLO_RELOJ = workerData.velocidad; 
+
+const CICLO_RELOJ = 500;
+
+console.log(`CICLO DE RELOJ ES >>> ${CICLO_RELOJ}`);
 // const nucleo = workerData.nucleo;  WARNING: parametro por valor, no referencia. Problema real de coherencia de datos.
 // const sizeRAM = workerData.sizeRAM;  WARNING: parametro por valor, no referencia. Problema real de coherencia de datos.
 

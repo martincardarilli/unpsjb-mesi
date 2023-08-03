@@ -12,6 +12,13 @@
   
 }
 
+.edited{
+  font-weight: 900 !important;
+  border-left:3px solid black;
+  border-right:3px solid black;
+  font-size: 20px;
+  
+}
 
 .cachetitle{
   margin-bottom: 10px;
@@ -91,6 +98,7 @@ margin-bottom:3px;
 
 .datoEnCache{
   width: 25px !important;
+  text-align:center;
 }
 
 .todo{
@@ -104,19 +112,27 @@ margin-bottom:3px;
 
 .renglon{
   background-color:white !important;
-  text-align:right;
+
 }
 
 .CPU{
   background-color: black;
-    height: 200px;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow:auto;
+  height: 400px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow: auto;
+  /* text-align: left; */
+  padding-left: 20px;
 
     
+}
+
+
+
+span{
+  text-align:center;
 }
 
 
@@ -125,6 +141,10 @@ margin-bottom:3px;
   background-color: rgb(167, 167, 167) !important; 
 }
 */
+
+.highlighted{
+  border: 3px solid black;
+}
 
 
 /* ULTIMO RENGLON EN ACTUALIZARSE */

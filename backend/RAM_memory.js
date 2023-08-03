@@ -93,6 +93,7 @@ leer(direccionAlta, direccionMedia) {
 
   for (let i = 0; i < bloqueSize; i++) {
     const direccion = direccionCompleta * bloqueSize + i;
+    
     data.push(this.data[direccion].dato);
   }
 
@@ -103,10 +104,30 @@ leer(direccionAlta, direccionMedia) {
 
 
 
+escribir(direccionAlta, direccionMedia, dato) {
 
-    escribir(direccion, dato){
-      this.data[direccion] = dato;
+  dato = dato.reverse(); // En el renglon de la Cache, estaba al revés
+
+  console.log('DATOS A ESCRIBIR '+dato);
+
+  const bloqueSize = this.bus.cpu.nucleos[0].cache.tamañoBloque;
+  const direccionCompleta = direccionAlta * this.bus.cpu.nucleos[0].cache.size + direccionMedia;
+  console.log('DIRECCION COMPLETA hexa>>> ' + direccionCompleta.toString(16));
+
+  for (let i = 0; i < bloqueSize; i++) {
+    const direccion = direccionCompleta * bloqueSize + i;
+    //console.log('DEBUG: direccion:', direccion, 'this.data.length:', this.data.length);
+    if (direccion >= 0 && direccion < this.data.length) {
+      console.log(`/! WRITE RAM !/ ANTES = ${this.data[direccion].dato} > DESPUES > ${dato[i]}`);
+      this.data[direccion].dato = dato[i]; // Aquí actualizamos el dato en la dirección específica
+    } else {
+      console.log('ERROR: direccion fuera del rango:', direccion);
     }
+  }
+
+  console.log('SE ACTUALIZO EN RAM >>> ' + dato);
+}
+
 
 }
   

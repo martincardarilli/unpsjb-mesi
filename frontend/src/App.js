@@ -53,7 +53,7 @@ function App() {
         // Verificar si 'data.renglonAnimacion' existe antes de intentar acceder a sus propiedades.
     if (data.historialAnimacion && data.historialAnimacion.renglon) {
       setHighlightedRow(data.historialAnimacion.renglon);
-      setHighlightedPosition(data.historialAnimacion.posicion);
+      setHighlightedPosition(data.columnasCache-1 - data.historialAnimacion.posicion);
 
     }
 
@@ -247,9 +247,9 @@ function App() {
                 
                 {/* <span class="header">ID </span> 
                 <span class="header">Binario </span> */}
-                <span class="header">Renglon </span> 
+                <span class="header tres">Renglon </span> 
                 <span class="header">MESI</span>  
-                <span class="header"> Etiqueta  </span>
+                <span class="header tres"> Etiqueta  </span>
    
 
                 {valores.map((valor) => (
@@ -268,7 +268,7 @@ function App() {
     className={`cacheSlot ${highlightedRow === item.ID ? "highlighted" : ""} ${item.bandera}`}
   >
         
-                  
+         
                   <span class="renglon">
                 {item.direccionHEX === null ? 'null' : '0x'+item.direccionHEX}
                </span>
@@ -296,14 +296,18 @@ function App() {
 
                    {Array.isArray(item.dato) ? (
                    item.dato.map((dato, index) => (
-                       <span key={index} class="datoEnCache">
+
+                       <span key={index} class={`datoEnCache ${highlightedPosition === index && highlightedRow === item.ID? "edited" : ""} ${item.bandera}`}>
                        {dato === null ? 'null' : dato}
                     </span>
+
                      ))
                      ) : (
+
                      <span class="datoEnCache">
                       {item.dato === null ? 'null' : item.dato}
                        </span>
+
                     )}
 
 <input

@@ -11,8 +11,8 @@ const { RAM } = require('./RAM_memory');
 // PARAMETRIZABLES
 // ---------------
 
-const sizeRAM = 2048; // 2048 bytes, 2 KB , 21 bits para direccion
-const QTYdatosrandom = 2048; // Cantidad de datos random generados en Cache
+const sizeRAM = 512; // 2048 bytes, 2 KB , 21 bits para direccion
+const QTYdatosrandom = sizeRAM; // Cantidad de datos random generados en Cache
 
 // Cache 256 bytes (16 renglones de 16 bytes)
 const sizeCache = 16; // Cache de 16 renglones
@@ -28,9 +28,11 @@ En una arquitectura de 64 bits (x64), una "word" suele tener 64 bits (8 bytes).
 
 const QTYnucleos = 2; // Cantidad de nucleos
 
+//EDITABLE EN ARCHIVO NUCLEO.js
 const CICLO_RELOJ = 1000; //ms 
+//EDITABLE EN ARCHIVO NUCLEO.js
 
-const tiempoRespuestaCache = 500; //ms 
+const tiempoRespuestaCache = 200; //ms 
 const tiempoRespuestaRAM = 3000; //ms 
 
 // -----------------------------------

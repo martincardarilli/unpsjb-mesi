@@ -1,4 +1,4 @@
-const { Worker, parentPort } = require('worker_threads');
+const { Worker, workerData, parentPort } = require('worker_threads');
 
 const { Cache } = require('./CACHE_memory');
 
@@ -30,7 +30,8 @@ class CPU {
         this.nucleos.push(nucleo);
         //console.log('NUCLEO '+JSON.stringify(nucleo));
 
-        const hilo = new Worker('./NUCLEO.js', { workerData: {nucleo: nucleo, sizeRAM: bus.ram.size, velocidad: this.velocidad}}); // WARNING: parametro por valor, no referencia. Problema real de coherencia de datos.
+        const hilo = new Worker('./NUCLEO.js', { velocidad: this.velocidad });
+        // WARNING: parametro por valor, no referencia. Problema real de coherencia de datos.
         hilo.on('message', async (message) => {
          // console.log('\x1b[33m', `[${nucleo.ID}] *---- Hilo [${nucleo.ID}] - Mensaje recibido desde el hilo:`, message);
          
@@ -46,26 +47,30 @@ class CPU {
             const valorAleatorio = Math.floor(Math.random() * this.bus.ram.size);
             //console.log('\x1b[33m', `[${nucleo.ID}] *---- Hilo [${nucleo.ID}] - Quiere LEER direccion 0x${valorAleatorio.toString(16)}`);
 
-            let renglon = parseInt((valorAleatorio / nucleo.cache.tamañoBloque) % nucleo.cache.size);
+            
             let etiqueta = parseInt(valorAleatorio / (nucleo.cache.size * nucleo.cache.tamañoBloque));
+            let renglon = parseInt((valorAleatorio / nucleo.cache.tamañoBloque) % nucleo.cache.size);
             let posicion = valorAleatorio % nucleo.cache.tamañoBloque;
 
-            nucleo.historial.unshift(`[${nucleo.ID}] - ${message.toUpperCase()} direccion 0x${valorAleatorio.toString(16).toUpperCase()}`);
 
+
+           
+            nucleo.historial.unshift(`[${nucleo.ID}] - ${message.toUpperCase()} direccion 0x${etiqueta.toString(16).toUpperCase()}${renglon.toString(16).toUpperCase()}${posicion.toString(16).toUpperCase()}`);
+            nucleo.historial.unshift(`ETIQUETA = ${etiqueta}(10) ${etiqueta.toString(16).toUpperCase()}(h) / RENGLON = ${renglon} ${renglon.toString(16).toUpperCase()}(h) / POSICION = ${posicion} ${posicion.toString(16).toUpperCase()}(h)`);
 
              // REVISA SU PROPIA CACHE SINO
-            let respuesta = nucleo.cache.validarBloque(valorAleatorio);
+            let data = nucleo.cache.validarBloque(etiqueta,renglon,posicion);
 
             // PIDE A BUS
 
             // BUS RECORRE OTRAS CACHES (Interrumpción) APLICAR ESTADO AUTOMATA - REMOTE READ <> /?/ POSIBLE ESCRITURA EN RAM
 
             // SINO BUS LEE RAM (Exclusive)
-            if (respuesta.validez){
+            if (data.validez){
 
-              nucleo.historial.unshift(`[${nucleo.ID}] - Hit (Acierto) de Cache, DATO = ${respuesta.dato}`);
+              nucleo.historial.unshift(`[${nucleo.ID}] - Hit (Acierto) de Cache, DATO = ${data.datos}`);
 
-              hilo.postMessage({ type: 'loop' });
+              
 
             }else{
 
@@ -73,89 +78,10 @@ class CPU {
               nucleo.historial.unshift(`[${nucleo.ID}] - Miss de Cache, consulta BUS`);
 
               try {
-                const data = await bus.leer(nucleo.ID,valorAleatorio);
+                data = await bus.leer(nucleo.ID,etiqueta,renglon,posicion);
 
-                console.log('Datos leídos HILO PRINCIPAL:', data.datos);
+                //console.log('Datos leídos HILO PRINCIPAL:', data.datos);
 
-                
-              
-              
-                // SAVE
-                // SAVE
-                // SAVE
-                if (data.validez){
-                  nucleo.cache.slots[renglon].bandera = 'S';
-                  }else{
-                    nucleo.cache.slots[renglon].bandera = 'E';
-                  }
-
-                nucleo.cache.slots[renglon].etiqueta = etiqueta;
-                
-
-                // PREGUNTAR SI EL SLOT ESTA VACIO PARA NO DEJAR SHAREDS INCOHERENTES?
-                nucleo.historial.unshift(`[${nucleo.ID}] - Load correcto`);
-     
-                
-
-                nucleo.cache.slots[renglon].dato = data.datos.reverse();
-
-                // ------------------
-                // WRITE
-                // ------------------
-                if (message === 'write'){  
-
-// Guardamos el array 'dato' de la caché en una variable temporal y lo invertimos
-const tempArray = nucleo.cache.slots[renglon].dato.reverse();
-
-
-
-
-
-// Incrementamos el valor del número aleatorio en el array invertido
-tempArray[posicion] = tempArray[posicion] + 1;
-
-// Invertimos nuevamente el array 'dato' y lo actualizamos en la caché
-nucleo.cache.slots[renglon].dato = tempArray.reverse();
-
-
-                  
-                  // VALIDAR BLOQUE LOCAL WRITE + REMOTE WRITE
-
-                  for (let i = 0; i < this.nucleos.length; i++) { // INICIO BUSQUEDA EN TODOS LOS CACHES MENOS EL PROPIO
-                    console.log('VUELTA');
-
-                    // LOCAL WRITE
-                    if (i === nucleo.ID){ 
-
-                    // SHARED > EXCLUSIVE
-                     if (nucleo.cache.slots[renglon].bandera === 'S'){
-                      nucleo.cache.slots[renglon].bandera = 'M';
-                    }
-
-                    // EXCLUSIVE > MODIFIED
-                    if (nucleo.cache.slots[renglon].bandera === 'E'){
-                      nucleo.cache.slots[renglon].bandera = 'M';
-                    }
-
-                    }else{ // REMOTE WRITE
-                      this.nucleos[i].cache.validarBloqueRemoteWrite(valorAleatorio);//recorrer cache
-
-                    }
-
-                
-                    
-                    } // FIN BUSQUEDA DE CACHE
-                  
-                }
-
-
-                // SAVE
-                // SAVE
-                // SAVE
-                                  
-             
-                hilo.postMessage({ type: 'loop' });
-               
               } catch (error) { // fin try start catch
                 console.error('Error al leer RAM:', error);
   
@@ -164,7 +90,126 @@ nucleo.cache.slots[renglon].dato = tempArray.reverse();
                       
               }// fin catch
 
-            }// fin else
+              }// fin else
+
+                // SAVE
+                
+
+                  if (Array.isArray(data.datos)) { 
+
+                  if(data.encontro === "otraCache"){
+                    nucleo.cache.slots[renglon].bandera = 'S';
+                    //nucleo.historial.unshift(`[${nucleo.ID}] - Renglon: ${renglon} - Shared`);
+                  }
+
+                  if(data.encontro === "RAM"){
+                    nucleo.cache.slots[renglon].bandera = 'E';
+                    //nucleo.historial.unshift(`[${nucleo.ID}] - Renglon: ${renglon} - Exclusive`);
+                  }
+
+                }
+
+                // SAVE
+                if (Array.isArray(data.datos)) { 
+                nucleo.cache.slots[renglon].etiqueta = etiqueta;
+                }
+
+
+                if(Array.isArray(data.datos)){ // PROMISE REJECT ???
+                nucleo.historial.unshift(`[${nucleo.ID}] - Load correcto`);
+                 }else{  
+                    nucleo.historial.unshift(`[${nucleo.ID}] - ERROR EN LOAD`);
+                        }
+
+
+                // SI NUNCA PUDO ACCEDER AL DATO
+
+                     // SAVE
+                  if (Array.isArray(data.datos)) { 
+                  let save = [...data.datos].reverse(); // ROMPE PROPAGACIÓN DE REFERENCIA DE MEMORIA
+                nucleo.cache.slots[renglon].dato = save; // ROMPE PROPAGACIÓN DE REFERENCIA DE MEMORIA
+                  }
+
+                // RIESGO DE QUE LAS CACHES TENGAN COHERENCIA ENTRE SI "MAGICAMENTE"
+
+
+                nucleo.historial.unshift(JSON.stringify(nucleo.cache.slots[renglon].dato));
+
+
+               
+                // ------------------
+                // WRITE
+                // ------------------
+                if (message === 'write' && Array.isArray(data.datos)){  
+
+                 
+
+          
+
+                  let temporal = nucleo.cache.slots[renglon].dato.reverse();
+
+
+
+                    nucleo.historial.unshift(`[${temporal[posicion]}] > [${temporal[posicion]+1}]`);
+
+ 
+                  temporal[posicion] = parseInt(temporal[posicion]) + 1; //ADDi
+
+                  temporal = temporal.reverse();
+
+                  nucleo.cache.slots[renglon].dato = temporal;
+
+
+                    nucleo.historial.unshift(JSON.stringify(nucleo.cache.slots[renglon].dato));
+
+
+
+
+                  
+                  // VALIDAR BLOQUE LOCAL WRITE + REMOTE WRITE
+
+                  for (let i = 0; i < this.nucleos.length; i++) { // INICIO BUSQUEDA EN TODOS LOS CACHES MENOS EL PROPIO
+                    console.log(`REMOTE WRITE - VALIDACIÓN NUCLEO [${i}]`);
+
+                    // LOCAL WRITE
+                    if (i === nucleo.ID){ // DESPUES DE ESCRIBIR, SI ES EL PROPIO NUCLEO 
+
+                      if (Array.isArray(data.datos)) { 
+                      nucleo.cache.slots[renglon].bandera = 'M';
+                      //nucleo.historial.unshift(`[${nucleo.ID}] - Renglon: ${renglon} - Modified`);
+                      }
+
+                    }else{ // REMOTE WRITE
+                      console.log(`inicia validacion REMOTE WRITE de nucleo ${i}`);
+                      this.nucleos[i].cache.validarBloqueRemoteWrite(etiqueta,renglon,posicion);//recorrer cache
+
+                    }
+
+                
+                    
+                    } // FIN BUSQUEDA DE CACHE
+                  
+                }
+/*
+                let spread;
+              if (nucleo.cache.slots[renglon].bandera === 'E'){
+                spread = false;
+              }
+
+              if (nucleo.cache.slots[renglon].bandera === 'S'){
+                spread = true;
+              }
+
+              if (nucleo.cache.slots[renglon].bandera === 'M'){
+                spread = true;
+              }
+              */                    
+                this.bus.historialAnimacion = {renglon: renglon, posicion: posicion, instruccion: message};
+                hilo.postMessage({ type: 'loop' });
+               
+              
+
+            
 
            
 
@@ -178,7 +223,7 @@ nucleo.cache.slots[renglon].dato = tempArray.reverse();
           // LOOP
           // ------------------
           if (message === 'loop'){
-            if (nucleo.historial.length > 0 && nucleo.historial[0].startsWith(' . ')) {
+            if (nucleo.historial.length > 0 && nucleo.historial[0].toString().startsWith(' . ')) {
               nucleo.historial[0] += ' . '; // Agregamos un espacio adicional al principio del valor
             } else {
               nucleo.historial.unshift(' . '); // Si el primer valor no empieza con un espacio, agregamos " . " al inicio del array

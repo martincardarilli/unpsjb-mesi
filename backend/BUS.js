@@ -47,11 +47,11 @@ class BUS {
 
     
       //Lee en otras caches (Interrumpción teórica) y/o RAM para buscar dato valido
-    async leer(ID,direccion){
+    async leer(ID,etiqueta,renglon,posicion){
       return new Promise((resolve, reject) => {
         const waitAndRead = async () => {
           if (this.ocupado) {
-            console.log(`[${ID}] Esperando por el BUS...`);
+            //console.log(`[${ID}] Esperando por el BUS...`);
             const index = this.esperando.indexOf(ID);
             if (index === -1) { // SI NO ENCONTRO
               this.esperando.push(ID);
@@ -65,18 +65,18 @@ class BUS {
               this.esperando.splice(index, 1);
             }
            
-            let etiqueta = parseInt(direccion / (this.cpu.nucleos[ID].cache.size * this.cpu.nucleos[ID].cache.tamañoBloque));
-            let renglon = parseInt((direccion / this.cpu.nucleos[ID].cache.tamañoBloque) % this.cpu.nucleos[ID].cache.size);
-            let posicion = direccion % this.cpu.nucleos[ID].cache.tamañoBloque;
+            //let etiqueta = parseInt(direccion / (this.cpu.nucleos[ID].cache.size * this.cpu.nucleos[ID].cache.tamañoBloque));
+            //let renglon = parseInt((direccion / this.cpu.nucleos[ID].cache.tamañoBloque) % this.cpu.nucleos[ID].cache.size);
+            //let posicion = direccion % this.cpu.nucleos[ID].cache.tamañoBloque;
 
             // PREGUNTAR EN OTRAS CACHES
             let respuestaCACHE = {};
 
 
             for (let i = 0; i < this.cpu.nucleos.length; i++) { // INICIO BUSQUEDA EN TODOS LOS CACHES MENOS EL PROPIO
-              console.log('VUELTA');
+              console.log(`REMOTE READ - VALIDACIÓN NUCLEO [${i}]`);
               if (i === ID) continue; // Saltar si es la propia caché
-              respuestaCACHE = this.cpu.nucleos[i].cache.validarBloqueRemoteRead(direccion);//recorrer cache
+              respuestaCACHE = this.cpu.nucleos[i].cache.validarBloqueRemoteRead(etiqueta,renglon,posicion);//recorrer cache
         
               if (respuestaCACHE.validez){
                 //console.log(`[${ID}] Encontro dato en Cache [${i}]`);
@@ -85,14 +85,14 @@ class BUS {
                   this.ocupado = false;
                   console.log(`[${ID}] Libera el BUS...`);
 
-                  this.historialAnimacion = {renglon: renglon, posicion: posicion};
+                 // this.historialAnimacion = {renglon: renglon, posicion: posicion};
 
                   resolve(respuestaCACHE); // SACAR EL .dato
                 }, this.tiempoRespuestaCache);
 
               }else{
                 //console.log(`[${ID}] No encontro dato en Cache [${i}]`);
-                this.cpu.nucleos[ID].historial.unshift(`[${ID}] Cache [${i}] no tiene el dato, no interrumpe`);
+                //this.cpu.nucleos[ID].historial.unshift(`[${ID}] Cache [${i}] no tiene el dato, no interrumpe`);
                 
               }
               
@@ -111,14 +111,14 @@ class BUS {
                   const lectura = this.ram.leer(etiqueta, renglon); // nos estaba devolviendo un objeto entero osea un parametro por referencia
     
            
-                  let respuestaRAM = {validez: false, datos: lectura};
+                  let respuestaRAM = {validez: true, datos: lectura, encontro: "RAM"};
         
                   setTimeout(() => {
                   console.log(`LECTURA  ${lectura}`);
                   this.ocupado = false;
                   console.log(`[${ID}] Libera el BUS...`);
 
-                  this.historialAnimacion = {renglon: renglon, posicion: posicion};
+                  //this.historialAnimacion = {renglon: renglon, posicion: posicion};
 
                   resolve(respuestaRAM);
                 }, this.tiempoRespuestaRAM);
